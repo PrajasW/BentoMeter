@@ -1,17 +1,20 @@
 {
   "expo": {
-    "name": "bentometer",
+    "name": "BentoMeter",
     "slug": "bentometer",
+    "scheme": "bentometer",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bentometer.app"
     },
     "android": {
+      "package": "com.bentometer.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#FFD3E0",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -19,7 +22,40 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "experiments": {
+      "typedRoutes": true
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-sqlite",
+      "expo-secure-store",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "backgroundColor": "#FFF8F2",
+          "dark": {
+            "backgroundColor": "#1C1A26"
+          }
+        }
+      ],
+      "expo-sharing",
+      "@react-native-community/datetimepicker",
+      "expo-image",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "BentoMeter uses your photos so you can log meals you already snapped.",
+          "cameraPermission": "BentoMeter uses the camera to photograph your meals for calorie estimates.",
+          "microphonePermission": false
+        }
+      ]
+    ]
   }
 }
