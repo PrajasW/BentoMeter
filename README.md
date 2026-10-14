@@ -8,6 +8,7 @@
 
 **Snap your meal → get the calories → know what to eat next.** ✨
 <br/>A minimal, kawaii daily calorie tracker for Android & iOS, powered by Gemini.
+<br/>Rate-limited? Hand it to your Gemini/ChatGPT app 💬, or run it fully offline on your phone 📱.
 
 `(っ˘ڡ˘ς)　いただきます！`
 
@@ -15,6 +16,8 @@
 ![React Native](https://img.shields.io/badge/React%20Native-0.86-8DB8E0?style=flat-square&logo=react&logoColor=white)
 ![Gemini](https://img.shields.io/badge/Gemini-vision-8DBB8A?style=flat-square&logo=googlegemini&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-F2C66D?style=flat-square&logo=typescript&logoColor=white)
+![On-device AI](https://img.shields.io/badge/On--device-Qwen3--VL%202B-F09AB0?style=flat-square)
+![Never stuck](https://img.shields.io/badge/rate%20limits-never%20stuck-8DBB8A?style=flat-square)
 
 </div>
 
@@ -30,6 +33,11 @@ Take a photo of your plate and one Gemini request handles everything:
 2. 🍙 **Suggest your next meal.** It looks at what you've already eaten today and suggests what to eat next, when, and roughly how many calories.
 
 Everything else stays **on your phone**: meals, photos, profile, and API key. No accounts, no servers, no tracking. `(｡•̀ᴗ-)✧`
+
+And when the free Gemini API says *"429: quota exceeded"*, you're still not stuck:
+
+- 💬 **[Ask a chat app](#⑥-ask-a-chat-app-the-rate-limit-escape-hatch--チャットにおまかせ):** BentoMeter writes the perfect prompt, you send it to the Gemini or ChatGPT app you already have, and the answer is imported straight back. It's free, unlimited, and just as smart.
+- 📱 **[On-device AI](#⑦-on-device-ai-no-internet-needed--ローカル):** a tiny vision model runs right on your phone, and calories come from a built-in Indian food table.
 
 ---
 
@@ -95,6 +103,53 @@ Look back at the last 7 days and the month calendar, where each day gets a dot: 
     <td align="center"><img src="docs/screenshots/14-settings.png" width="200" /><br/><sub><b>Settings</b> せってい</sub></td>
   </tr>
 </table>
+
+### ⑥ Ask a chat app: the rate-limit escape hatch ｜ チャットにおまかせ
+
+The free Gemini API runs out fast. Your **Gemini app** (or ChatGPT) doesn't, and it's just as smart. So BentoMeter turns it into a calorie engine with **one tap out and one tap back** 🪄
+
+1. **Tap "Ask a chat app instead"**, or pick it from the error card when the API fails.
+2. **Tap "Copy prompt & share photo".** BentoMeter copies a ready-made prompt that has your whole day in it: what you've eaten, your targets, the time, and the exact JSON format it needs. Then it opens the share sheet with your photo.
+3. **Pick Gemini, paste, send.** The prompt already explains everything, so you don't type a word.
+4. **Tap "Copy code" on the reply and come back.** BentoMeter spots the answer on your clipboard and **fills it in by itself** ✨
+5. **Tap "Import meal".** You land on the normal review screen with every item, portion, kcal, macro, and the **Next up** suggestion. Edit anything, then save.
+
+The import doesn't mind messy replies: code fences, chatty text around the JSON, smart quotes, and trailing commas all parse fine. No API key, no quota, no waiting for tomorrow `٩(ˊᗜˋ*)و`
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/15-chat-option.png" width="200" /><br/><sub><b>Ask a chat app</b> えらぶ</sub></td>
+    <td align="center"><img src="docs/screenshots/16-handoff-send.png" width="200" /><br/><sub><b>① Copy &amp; share</b> おくる</sub></td>
+    <td align="center"><img src="docs/screenshots/17-gemini-prompt.png" width="200" /><br/><sub><b>② Paste in Gemini</b> はりつけ</sub></td>
+    <td align="center"><img src="docs/screenshots/18-gemini-reply.png" width="200" /><br/><sub><b>③ Gemini answers</b> こたえ</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/19-handoff-paste.png" width="200" /><br/><sub><b>④ Auto-filled back</b> おかえり</sub></td>
+    <td align="center"><img src="docs/screenshots/20-handoff-review.png" width="200" /><br/><sub><b>⑤ Imported &amp; editable</b> なかみ</sub></td>
+    <td align="center"><img src="docs/screenshots/21-handoff-next-up.png" width="200" /><br/><sub><b>Next up included</b> つぎは</sub></td>
+    <td></td>
+  </tr>
+</table>
+
+### ⑦ On-device AI: no internet needed ｜ ローカル
+
+Download the model once from **Settings → On-device AI**, and BentoMeter can log meals in airplane mode. Type *"I ate 2 rotis, around 2 small cups of paneer, and 2 masala omelettes"* (or snap a photo):
+
+- **A small vision model on your phone names the foods.**
+- **The built-in Indian food table supplies the calories:** roti 185, paneer 560, and masala omelettes 448 kcal.
+
+On a Pixel 9a this took **~43 s from a cold start**, with no network at all. Turn on **Always use on-device** to skip Gemini entirely, or leave it off and it's offered whenever Gemini fails.
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/22-local-describe.png" width="200" /><br/><sub><b>Describe it</b> ことばで</sub></td>
+    <td align="center"><img src="docs/screenshots/23-local-thinking.png" width="200" /><br/><sub><b>Thinking on your phone</b> かんがえちゅう</sub></td>
+    <td align="center"><img src="docs/screenshots/24-local-review.png" width="200" /><br/><sub><b>Matched to the food table</b> なかみ</sub></td>
+    <td align="center"><img src="docs/screenshots/25-settings-local-ai.png" width="200" /><br/><sub><b>Settings · v1.1.0</b> せってい</sub></td>
+  </tr>
+</table>
+
+<sub>Thali photo in the chat-app walkthrough: <a href="https://commons.wikimedia.org/wiki/File:Traditional_North_Indian_Thali.jpg">"Traditional North Indian Thali"</a> by Shashank shk, <a href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a>.</sub>
 
 ---
 
@@ -189,12 +244,7 @@ It remembers models that failed for a while, so later calls go straight to one t
 
 ## 💬 When Gemini is rate-limited ｜ こまったときは
 
-If an analysis fails, the error card offers two ways out, and both end in the normal review screen:
-
-1. **Ask Gemini / ChatGPT app:** BentoMeter copies a prompt that has your day's context and the exact JSON format, then opens the share sheet with the photo. Paste the prompt in the chat app, send it, copy the reply, and tap **Paste from clipboard → Import meal**. Fenced code blocks, extra prose, smart quotes, and trailing commas are all fine.
-2. **Run on this phone:** uses the on-device model (below) if you've downloaded it.
-
-**Ask a chat app instead** is also always on the capture screen.
+If an analysis fails, the error card offers **Run on this phone** (when the model is downloaded) and **Ask Gemini / ChatGPT app**. Both end in the normal review screen. See the [walkthrough above](#⑥-ask-a-chat-app-the-rate-limit-escape-hatch--チャットにおまかせ) for the chat-app flow. The prompt starts with a `BENTOMETER v1` marker, so the app never mistakes its own prompt on the clipboard for a reply.
 
 ## 📱 On-device AI ｜ ローカル
 
@@ -213,7 +263,7 @@ How it works:
 Notes:
 
 - **It needs a native build.** It doesn't run in Expo Go: `npx expo run:android`, or an EAS development build.
-- **On a Pixel 9a it runs on the CPU.** llama.rn's GPU backend only supports Qualcomm Adreno GPUs, and the Tensor G4 has a Mali GPU. Expect roughly 20–60 s per photo, and less for text.
+- **On a Pixel 9a it runs on the CPU.** llama.rn's GPU backend only supports Qualcomm Adreno GPUs, and the Tensor G4 has a Mali GPU. Measured: a typed meal takes ~43 s from a cold start (including loading the model). Photos take longer.
 - **Rebuilding the food table:** `python scripts/build_foods.py <folder with INDB.xlsx>` (needs `openpyxl`). Rows where INDB clearly counts all the frying oil, or treats a whole recipe as one serving, are filtered out. Add or adjust staples in `scripts/foods-basic.json`.
 - **Data licensing:** the INDB paper is CC BY, but the repo has no license file. That's fine for personal use; check with the authors before a store release.
 
