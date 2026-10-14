@@ -67,6 +67,7 @@ function AppStack() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
         <Stack.Screen name="capture" options={{ title: 'Log a meal', presentation: 'modal' }} />
+        <Stack.Screen name="handoff" options={{ title: 'Ask a chat app' }} />
         <Stack.Screen name="review" options={{ title: 'Review' }} />
         <Stack.Screen name="meal/[id]" options={{ title: 'Meal' }} />
         <Stack.Screen name="profile" options={{ title: 'Profile & goal' }} />

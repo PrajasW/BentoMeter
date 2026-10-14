@@ -4,13 +4,15 @@ import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
-import { KawaiiLoader } from '@/components/KawaiiLoader';
+import { KawaiiLoader, LOCAL_LINES } from '@/components/KawaiiLoader';
 import { Mascot } from '@/components/Mascot';
 import { WhenPicker } from '@/components/WhenPicker';
 import { Button, Card, Input, Screen, Segmented, Txt } from '@/components/ui';
 import { buildDayContext } from '@/lib/dayContext';
 import { atTime, dayKey, todayKey } from '@/lib/dates';
-import { analyzeMeal, GeminiError } from '@/lib/gemini';
+import { analyzeMeal } from '@/lib/gemini';
+import { analyzeMealLocally, isLocalRuntimeAvailable } from '@/lib/local/llm';
+import { AnalysisError, type AnalyzedMeal } from '@/lib/prompt';
 import { preparePhoto } from '@/lib/image';
 import { defaultTimeForSlot, slotForTime, SLOTS } from '@/lib/mealSlot';
 import { itemsTotals } from '@/lib/nutrition';
@@ -20,6 +22,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
 
 type Mode = 'photo' | 'text';
+type Engine = 'gemini' | 'local';
 
 export default function Capture() {
   const { c } = useTheme();
@@ -28,7 +31,8 @@ export default function Capture() {
   const isToday = date === todayKey();
   const initialSlot: Slot = SLOTS.includes(params.slot as Slot) ? (params.slot as Slot) : slotForTime(new Date());
 
-  const { profile, apiKey, modelId, useFallback, setDraft } = useAppStore();
+  const { profile, apiKey, modelId, useFallback, setDraft, engine, localModel } = useAppStore();
+  const localReady = localModel.state === 'ready' && isLocalRuntimeAvailable();
   const [slot, setSlot] = useState<Slot>(initialSlot);
   const [when, setWhen] = useState<Date>(() => {
     if (isToday) return new Date();
@@ -40,8 +44,9 @@ export default function Capture() {
   const [photo, setPhoto] = useState<string | null>(null);
   const [description, setDescription] = useState('');
   const [note, setNote] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<Engine | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [failed, setFailed] = useState<Engine | null>(null);
 
   const changeSlot = (s: Slot) => {
     setSlot(s);
@@ -82,16 +87,9 @@ export default function Capture() {
     recommendationBasisKcal: 0,
   });
 
-  const analyze = async () => {
+  const run = async (which: Engine) => {
     if (!profile) return;
-    if (!apiKey) {
-      Alert.alert('Gemini key missing', 'Add your Gemini API key in Settings first.', [
-        { text: 'Later' },
-        { text: 'Open Settings', onPress: () => router.replace('/settings') },
-      ]);
-      return;
-    }
-    setBusy(true);
+    setBusy(which);
     setError(null);
     let savedUri: string | null = null;
     try {
@@ -101,24 +99,23 @@ export default function Capture() {
         savedUri = prepared.savedUri;
         imageBase64 = prepared.base64;
       }
-      const context = await buildDayContext({
-        profile,
-        date: dayKey(when),
-        slot,
-        eatenAt: when,
-        note: note.trim() || undefined,
-      });
-      const result = await analyzeMeal({
-        apiKey,
-        model: modelId,
-        useFallback,
-        imageBase64,
-        description: mode === 'text' ? description.trim() : undefined,
-        context,
-      });
+      const text = mode === 'text' ? description.trim() : undefined;
+      let result: AnalyzedMeal;
+      if (which === 'local') {
+        result = await analyzeMealLocally({ imageUri: savedUri ?? undefined, description: text, note: note.trim() || undefined });
+      } else {
+        const context = await buildDayContext({
+          profile,
+          date: dayKey(when),
+          slot,
+          eatenAt: when,
+          note: note.trim() || undefined,
+        });
+        result = await analyzeMeal({ apiKey: apiKey!, model: modelId, useFallback, imageBase64, description: text, context });
+      }
       setDraft({
         ...baseDraft(savedUri),
-        dishSummary: result.dishSummary,
+        dishSummary: result.dishSummary || baseDraft(savedUri).dishSummary,
         items: result.items,
         recommendation: result.recommendation,
         modelUsed: result.modelUsed,
@@ -126,15 +123,18 @@ export default function Capture() {
       });
       router.replace('/review');
     } catch (e) {
-      setError(e instanceof GeminiError ? e.message : 'Something went wrong while analyzing.');
-      // Keep the saved photo so "enter manually" can still use it.
+      const known = e instanceof AnalysisError || (which === 'local' && e instanceof Error);
+      setError(known ? (e as Error).message : 'Something went wrong while analyzing.');
+      setFailed(which);
+      // Keep the saved photo so the other options can still use it.
       if (savedUri) setPhoto(savedUri);
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   };
 
-  const manual = async () => {
+  /** Save the photo, fill a draft without items and open the next screen (manual entry or chat-app handoff). */
+  const openWithDraft = async (route: '/review' | '/handoff') => {
     let savedUri: string | null = null;
     if (mode === 'photo' && photo) {
       try {
@@ -144,14 +144,33 @@ export default function Capture() {
       }
     }
     setDraft(baseDraft(savedUri));
-    router.replace('/review');
+    router.replace(route);
+  };
+
+  const analyze = () => {
+    if (!profile) return;
+    if (engine === 'local' && localReady) return run('local');
+    if (!apiKey) {
+      if (localReady) return run('local');
+      Alert.alert('Gemini key missing', 'Add your Gemini API key in Settings, or ask your Gemini/ChatGPT app instead.', [
+        { text: 'Later' },
+        { text: 'Ask a chat app', onPress: () => openWithDraft('/handoff') },
+        { text: 'Open Settings', onPress: () => router.replace('/settings') },
+      ]);
+      return;
+    }
+    return run('gemini');
   };
 
   if (busy) {
     return (
       <Screen edges={[]} contentStyle={{ flexGrow: 1, justifyContent: 'center' }}>
         {photo ? <Image source={{ uri: photo }} style={styles.preview} contentFit="cover" /> : null}
-        <KawaiiLoader />
+        {busy === 'local' ? (
+          <KawaiiLoader lines={LOCAL_LINES} hint="On-device takes about 20–60 s" />
+        ) : (
+          <KawaiiLoader />
+        )}
       </Screen>
     );
   }
@@ -213,7 +232,7 @@ export default function Capture() {
       <Input
         value={note}
         onChangeText={setNote}
-        placeholder="Note for Gemini, e.g. ate half the rice"
+        placeholder="Note for the AI, e.g. ate half the rice"
       />
 
       {error ? (
@@ -223,18 +242,49 @@ export default function Capture() {
             {error}
           </Txt>
           <Txt variant="caption" style={{ textAlign: 'center' }}>
-            You can try again, or type the foods in yourself.
+            No worries, there are other ways to fill it in:
           </Txt>
+          {failed === 'gemini' && localReady ? (
+            <Button
+              kind="soft"
+              title="Run on this phone"
+              style={{ alignSelf: 'stretch', backgroundColor: c.card }}
+              onPress={() => run('local')}
+              icon={<Ionicons name="phone-portrait-outline" size={18} color={c.text} />}
+            />
+          ) : null}
+          {failed === 'local' && apiKey ? (
+            <Button
+              kind="soft"
+              title="Try Gemini instead"
+              style={{ alignSelf: 'stretch', backgroundColor: c.card }}
+              onPress={() => run('gemini')}
+              icon={<Ionicons name="cloud-outline" size={18} color={c.text} />}
+            />
+          ) : null}
+          <Button
+            kind="soft"
+            title="Ask Gemini / ChatGPT app"
+            style={{ alignSelf: 'stretch', backgroundColor: c.card }}
+            onPress={() => openWithDraft('/handoff')}
+            icon={<Ionicons name="chatbubbles-outline" size={18} color={c.text} />}
+          />
+          {failed === 'gemini' && !localReady && isLocalRuntimeAvailable() ? (
+            <Button small kind="ghost" title="Set up on-device AI in Settings" onPress={() => router.replace('/settings')} />
+          ) : null}
         </Card>
       ) : null}
 
       <Button
-        title={error ? 'Try again' : 'Analyze'}
+        title={error ? 'Try again' : engine === 'local' && localReady ? 'Analyze on this phone' : 'Analyze'}
         disabled={!canAnalyze}
         onPress={analyze}
         icon={<Ionicons name="sparkles" size={18} color={c.onAccent} />}
       />
-      <Button title="Enter items manually" kind="ghost" onPress={manual} />
+      {!error ? (
+        <Button title="Ask a chat app instead" kind="ghost" disabled={!canAnalyze} onPress={() => openWithDraft('/handoff')} />
+      ) : null}
+      <Button title="Enter items manually" kind="ghost" onPress={() => openWithDraft('/review')} />
     </Screen>
   );
 }

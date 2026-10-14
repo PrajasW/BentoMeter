@@ -3,7 +3,7 @@
     "name": "BentoMeter",
     "slug": "bentometer",
     "scheme": "bentometer",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -54,6 +54,20 @@
           "photosPermission": "BentoMeter uses your photos so you can log meals you already snapped.",
           "cameraPermission": "BentoMeter uses the camera to photograph your meals for calorie estimates.",
           "microphonePermission": false
+        }
+      ],
+      [
+        "llama.rn",
+        {
+          "enableOpenCLAndHexagon": false
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraProguardRules": "-keep class com.rnllama.** { *; }"
+          }
         }
       ]
     ]

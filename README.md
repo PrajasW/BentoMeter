@@ -114,6 +114,8 @@ Look back at the last 7 days and the month calendar, where each day gets a dot: 
 | 📊 | **History:** 7-day chart and a month calendar with under / on target / over dots. Tap a day to jump to it | きろく |
 | 🧮 | **Personal targets:** BMR/TDEE with Mifflin-St Jeor plus your activity level and goal (lose / maintain / gain), or set your own number | もくひょう |
 | 🤖 | **Gemini model picker + fallback:** see [below](#-gemini-models--モデル) | モデル |
+| 💬 | **Ask a chat app:** Gemini API rate-limited? Copy a ready-made prompt, share the photo to the Gemini / ChatGPT app, paste the JSON reply back, and it lands in the normal review screen | チャット |
+| 📱 | **On-device AI (offline):** a local vision model ([Qwen3-VL 2B](https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct-GGUF)) names the foods, and calories come from a built-in Indian food table. See [below](#-on-device-ai--ローカル) | ローカル |
 | 🌗 | **Themes:** ☀️ Washi, 🌙 Yoru, or Auto (follows the system) | テーマ |
 | 💾 | **Backup:** JSON export and import (photos not included) | バックアップ |
 | 🔒 | **Private by design:** SQLite on-device, API key in the secure store (`expo-secure-store`), never in the source | ひみつ |
@@ -185,13 +187,49 @@ It remembers models that failed for a while, so later calls go straight to one t
 
 ---
 
+## 💬 When Gemini is rate-limited ｜ こまったときは
+
+If an analysis fails, the error card offers two ways out, and both end in the normal review screen:
+
+1. **Ask Gemini / ChatGPT app:** BentoMeter copies a prompt that has your day's context and the exact JSON format, then opens the share sheet with the photo. Paste the prompt in the chat app, send it, copy the reply, and tap **Paste from clipboard → Import meal**. Fenced code blocks, extra prose, smart quotes, and trailing commas are all fine.
+2. **Run on this phone:** uses the on-device model (below) if you've downloaded it.
+
+**Ask a chat app instead** is also always on the capture screen.
+
+## 📱 On-device AI ｜ ローカル
+
+- **Model:** [Qwen3-VL-2B-Instruct](https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct-GGUF) (Apache-2.0), Q4_K_M plus the Q8 vision projector, about **1.55 GB**.
+- **Runtime:** [`llama.rn`](https://github.com/mybigday/llama.rn) (llama.cpp).
+- **Setup:** download the model from **Settings → On-device AI** (Wi-Fi recommended). After that it works with no internet. Turn on **Always use on-device** to skip Gemini entirely.
+
+How it works:
+
+- **The model only names foods and amounts**, for example `roti × 2 piece` or `paneer × 2 small katori`. It never guesses calories, because small models are bad at numbers.
+- `src/lib/local/foodDb.ts` fuzzy-matches each name against **`assets/data/foods.json`**, about 1,030 foods. The table combines [INDB](https://github.com/lindsayjaacks/Indian-Nutrient-Databank-INDB-) cooked Indian recipes (per 100 g plus a household serving) with ~80 hand-curated staples like roti, dal, masala omelette, and chai.
+- Household units are turned into grams: piece → the food's own serving, katori ≈ 150 g, bowl ≈ 200 g, and *small* × 0.7.
+- Foods it can't match stay at 0 kcal and are highlighted in review so you can fill them in.
+- Typing *"2 rotis, 2 small cups of paneer and 2 masala omelettes"* works the same way, with no photo.
+
+Notes:
+
+- **It needs a native build.** It doesn't run in Expo Go: `npx expo run:android`, or an EAS development build.
+- **On a Pixel 9a it runs on the CPU.** llama.rn's GPU backend only supports Qualcomm Adreno GPUs, and the Tensor G4 has a Mali GPU. Expect roughly 20–60 s per photo, and less for text.
+- **Rebuilding the food table:** `python scripts/build_foods.py <folder with INDB.xlsx>` (needs `openpyxl`). Rows where INDB clearly counts all the frying oil, or treats a whole recipe as one serving, are filtered out. Add or adjust staples in `scripts/foods-basic.json`.
+- **Data licensing:** the INDB paper is CC BY, but the repo has no license file. That's fine for personal use; check with the authors before a store release.
+
+---
+
 ## 🗺️ Code map ｜ ちず
 
 | Path | What's inside |
 | --- | --- |
 | `src/app/` | Screens (Expo Router): `(tabs)/index` Today, `(tabs)/history`, `(tabs)/settings`, `capture`, `review`, `meal/[id]`, `onboarding`, `profile` |
 | `src/components/` | `Mascot` 🍙, `CalorieRing`, `BentoGrid`, `MacroBars`, `FoodItemRow`, `RecommendationCard`, `KawaiiLoader`, … |
-| `src/lib/gemini.ts` | Prompt, JSON schema, model fallback chain, response parsing |
+| `src/lib/prompt.ts` | Shared prompt, JSON schema, response parsing |
+| `src/lib/gemini.ts` | Gemini API transport + model fallback chain |
+| `src/lib/handoff.ts` | Chat-app prompt + tolerant paste-back parser (`src/app/handoff.tsx` screen) |
+| `src/lib/local/` | On-device engine: `models.ts` (model files), `modelManager.ts` (download), `llm.ts` (llama.rn), `localPrompt.ts`, `foodDb.ts` (food table matching) |
+| `scripts/` | `build_foods.py` + `foods-basic.json` → `assets/data/foods.json` |
 | `src/lib/db.ts` | SQLite schema + queries (profile, settings, meals, food_items) |
 | `src/lib/mealSlot.ts`, `nutrition.ts` | Time → meal slot, BMR/TDEE/targets, per-unit scaling |
 | `src/lib/backup.ts` | JSON export / import |
@@ -203,7 +241,7 @@ It remembers models that failed for a while, so later calls go straight to one t
 ## 🧪 Checks ｜ テスト
 
 ```bash
-npm test            # unit tests: slot logic, nutrition math, Gemini response parsing
+npm test            # unit tests: slot logic, nutrition math, response parsing, chat-app handoff, food matching
 npx tsc --noEmit    # typecheck
 npx expo-doctor     # dependency / config health check
 ```

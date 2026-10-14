@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 import { addDays, dayKey, parseDayKey } from '../dates';
-import { parseAnalysis } from '../gemini';
+import { parseAnalysis } from '../prompt';
 import { slotForTime, suggestSlot } from '../mealSlot';
 import { bmr, calculatedTarget, isStale, itemMacros, itemsTotals, stepFor, targetsFor, toPerUnit } from '../nutrition';
 import type { FoodItem, Profile } from '../types';

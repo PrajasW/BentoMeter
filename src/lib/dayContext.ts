@@ -1,6 +1,6 @@
 import { getMealsForDate } from './db';
 import { formatTime } from './dates';
-import type { DayContext } from './gemini';
+import type { DayContext } from './prompt';
 import { itemsTotals, mealsTotals, targetsFor } from './nutrition';
 import type { Profile, Slot } from './types';
 
