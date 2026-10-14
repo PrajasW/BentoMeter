@@ -2,8 +2,13 @@ import { create } from 'zustand';
 import * as db from '@/lib/db';
 import { todayKey } from '@/lib/dates';
 import { DEFAULT_MODEL } from '@/lib/gemini';
+import { releaseLocalModel } from '@/lib/local/llm';
+import { cancelDownload, deleteModel, downloadModel, isModelReady, type ModelStatus } from '@/lib/local/modelManager';
 import { getApiKey, setApiKey } from '@/lib/secrets';
 import type { FoodItem, Profile, Recommendation, Slot, ThemePref } from '@/lib/types';
+
+/** Which analyzer runs first; the other options are offered when it fails. */
+export type Engine = 'gemini' | 'local';
 
 /** A meal being reviewed/edited before it is saved. */
 export interface Draft {
@@ -30,6 +35,8 @@ interface AppState {
   modelId: string;
   useFallback: boolean;
   apiKey: string | null;
+  engine: Engine;
+  localModel: ModelStatus;
   /** Day shown on the Today tab. */
   selectedDate: string;
   /** Bumped after every meal write so screens reload. */
@@ -42,6 +49,10 @@ interface AppState {
   setModelId: (m: string) => Promise<void>;
   setUseFallback: (v: boolean) => Promise<void>;
   setApiKey: (k: string) => Promise<void>;
+  setEngine: (e: Engine) => Promise<void>;
+  downloadLocalModel: () => Promise<void>;
+  cancelLocalDownload: () => void;
+  deleteLocalModel: () => Promise<void>;
   setSelectedDate: (d: string) => void;
   bumpData: () => void;
   setDraft: (d: Draft | null) => void;
@@ -55,18 +66,22 @@ export const useAppStore = create<AppState>((set, get) => ({
   modelId: DEFAULT_MODEL,
   useFallback: true,
   apiKey: null,
+  engine: 'gemini',
+  localModel: { state: 'none' },
   selectedDate: todayKey(),
   dataVersion: 0,
   draft: null,
 
   hydrate: async () => {
-    const [profile, themePref, modelId, useFallback, apiKey] = await Promise.all([
+    const [profile, themePref, modelId, useFallback, apiKey, engine] = await Promise.all([
       db.getProfile(),
       db.getSetting('theme'),
       db.getSetting('model'),
       db.getSetting('fallback'),
       getApiKey().catch(() => null),
+      db.getSetting('engine'),
     ]);
+    const modelReady = isModelReady();
     set({
       hydrated: true,
       profile,
@@ -74,6 +89,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       modelId: modelId ?? DEFAULT_MODEL,
       useFallback: useFallback !== 'false',
       apiKey,
+      engine: engine === 'local' && modelReady ? 'local' : 'gemini',
+      localModel: modelReady ? { state: 'ready' } : { state: 'none' },
     });
   },
   setProfile: async (p) => {
@@ -95,6 +112,34 @@ export const useAppStore = create<AppState>((set, get) => ({
   setApiKey: async (k) => {
     await setApiKey(k);
     set({ apiKey: k.trim() || null });
+  },
+  setEngine: async (e) => {
+    set({ engine: e });
+    await db.setSetting('engine', e);
+  },
+  downloadLocalModel: async () => {
+    if (get().localModel.state === 'downloading') return;
+    set({ localModel: { state: 'downloading', progress: 0 } });
+    let last = 0;
+    try {
+      await downloadModel((progress) => {
+        // Progress fires very often; only re-render on whole-percent changes.
+        if (progress - last >= 0.01 || progress >= 1) {
+          last = progress;
+          set({ localModel: { state: 'downloading', progress } });
+        }
+      });
+      set({ localModel: { state: 'ready' } });
+    } catch (e) {
+      set({ localModel: { state: 'error', message: e instanceof Error ? e.message : String(e) } });
+    }
+  },
+  cancelLocalDownload: () => cancelDownload(),
+  deleteLocalModel: async () => {
+    await releaseLocalModel();
+    deleteModel();
+    set({ localModel: { state: 'none' } });
+    if (get().engine === 'local') await get().setEngine('gemini');
   },
   setSelectedDate: (d) => set({ selectedDate: d }),
   bumpData: () => set({ dataVersion: get().dataVersion + 1 }),

@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, Switch, View } from 'react-native';
 import { ApiKeyForm } from '@/components/ApiKeyForm';
+import { LocalAiCard } from '@/components/LocalAiCard';
 import { Mascot } from '@/components/Mascot';
 import { Button, Card, Chip, Input, Row, Screen, Segmented, success, Txt } from '@/components/ui';
 import { exportBackup, importBackup } from '@/lib/backup';
@@ -157,6 +159,8 @@ export default function Settings() {
         </Row>
       </Card>
 
+      <LocalAiCard />
+
       <Card style={{ gap: 12 }}>
         <Txt variant="h2">Backup</Txt>
         <Txt variant="caption">Your data lives only on this phone. Export a JSON backup now and then (photos not included).</Txt>
@@ -169,7 +173,7 @@ export default function Settings() {
       <View style={{ alignItems: 'center', gap: 6, paddingTop: 8 }}>
         <Mascot size={48} mood="wink" />
         <Txt variant="caption" faint>
-          BentoMeter · いただきます!
+          BentoMeter v{Constants.expoConfig?.version ?? '?'} · いただきます!
         </Txt>
       </View>
     </Screen>

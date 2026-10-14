@@ -11,17 +11,26 @@ const LINES = [
   'Planning your next meal… 🍙',
 ];
 
-export function KawaiiLoader() {
+export const LOCAL_LINES = [
+  'Thinking on your phone… 📱',
+  'No internet needed ✨',
+  'Looking it up in the food table… 📖',
+  'Counting rotis carefully… 🫓',
+  'Almost there, tiny brain working… 🍙',
+];
+
+export function KawaiiLoader({ lines = LINES, hint }: { lines?: string[]; hint?: string }) {
   const [i, setI] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setI((n) => (n + 1) % LINES.length), 2200);
+    const t = setInterval(() => setI((n) => (n + 1) % lines.length), 2200);
     return () => clearInterval(t);
-  }, []);
+  }, [lines]);
   return (
     <View style={{ alignItems: 'center', gap: 16, paddingVertical: 32 }}>
       <Mascot size={96} mood="yum" bounce />
-      <Txt variant="h2">{LINES[i]}</Txt>
+      <Txt variant="h2">{lines[i % lines.length]}</Txt>
       <Txt variant="jp">しょうしょうお待ちください</Txt>
+      {hint ? <Txt variant="caption">{hint}</Txt> : null}
     </View>
   );
 }

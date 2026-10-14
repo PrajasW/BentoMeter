@@ -2,6 +2,7 @@ import * as Haptics from 'expo-haptics';
 import type { ReactNode } from 'react';
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
@@ -81,17 +82,21 @@ export function Screen({
   const { c } = useTheme();
   return (
     <SafeAreaView edges={edges} style={{ flex: 1, backgroundColor: c.bg }}>
-      {scroll ? (
-        <ScrollView
-          contentContainerStyle={[styles.screenContent, contentStyle]}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {children}
-        </ScrollView>
-      ) : (
-        <View style={[styles.screenContent, { flex: 1 }, contentStyle]}>{children}</View>
-      )}
+      {/* Android draws edge-to-edge, so the window no longer resizes for the keyboard: shrink the
+          screen ourselves so the ScrollView keeps the focused input visible above it. */}
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+        {scroll ? (
+          <ScrollView
+            contentContainerStyle={[styles.screenContent, contentStyle]}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {children}
+          </ScrollView>
+        ) : (
+          <View style={[styles.screenContent, { flex: 1 }, contentStyle]}>{children}</View>
+        )}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

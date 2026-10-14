@@ -12,6 +12,7 @@ import { dayKey, newId } from '@/lib/dates';
 import { deleteMeal, saveMeal } from '@/lib/db';
 import { refreshRecommendation } from '@/lib/gemini';
 import { deletePhoto } from '@/lib/image';
+import { LOCAL_MODEL_LABEL } from '@/lib/local/models';
 import { isStale, itemsTotals, round } from '@/lib/nutrition';
 import type { FoodItem, Meal } from '@/lib/types';
 import { useAppStore } from '@/store/useAppStore';
@@ -215,7 +216,9 @@ export default function Review() {
 
       {draft.modelUsed ? (
         <Txt variant="caption" faint style={{ textAlign: 'center' }}>
-          Estimated by {draft.modelUsed} · values are approximate
+          {draft.modelUsed === LOCAL_MODEL_LABEL
+            ? 'Foods spotted on this phone · calories from the Indian food table (INDB) · tap to adjust'
+            : `Estimated by ${draft.modelUsed} · values are approximate`}
         </Txt>
       ) : null}
 
