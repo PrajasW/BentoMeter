@@ -78,13 +78,15 @@ export async function analyzeMealLocally(opts: {
   imageUri?: string;
   description?: string;
   note?: string;
+  /** Compact mess menu (dish names) when eating at an IIIT-H mess. */
+  menu?: string;
 }): Promise<AnalyzedMeal> {
   if (!isLocalRuntimeAvailable()) throw new Error('On-device AI needs the development build of the app (not Expo Go).');
   if (!isModelReady()) throw new Error('Download the on-device model in Settings first.');
   if (idleTimer) clearTimeout(idleTimer);
   try {
     const ctx = await getContext();
-    const text = localUserText({ hasPhoto: !!opts.imageUri, description: opts.description, note: opts.note });
+    const text = localUserText({ hasPhoto: !!opts.imageUri, description: opts.description, note: opts.note, menu: opts.menu });
     const result = await ctx.completion({
       messages: [
         { role: 'system', content: LOCAL_SYSTEM_PROMPT },

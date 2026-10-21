@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Alert, Pressable, Switch, View } from 'react-native';
 import { ApiKeyForm } from '@/components/ApiKeyForm';
 import { LocalAiCard } from '@/components/LocalAiCard';
+import { MessSettingsCard } from '@/components/MessSettingsCard';
 import { Mascot } from '@/components/Mascot';
 import { Button, Card, Chip, Input, Row, Screen, Segmented, success, Txt } from '@/components/ui';
 import { exportBackup, importBackup } from '@/lib/backup';
@@ -160,6 +161,8 @@ export default function Settings() {
       </Card>
 
       <LocalAiCard />
+
+      <MessSettingsCard />
 
       <Card style={{ gap: 12 }}>
         <Txt variant="h2">Backup</Txt>

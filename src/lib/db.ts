@@ -129,6 +129,12 @@ export async function setSetting(key: string, value: string): Promise<void> {
   );
 }
 
+/** Delete settings whose key starts with `prefix` and sorts before `prefix + before` (date-keyed caches). */
+export async function deleteSettingsBefore(prefix: string, before: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM settings WHERE key LIKE ? AND key < ?', `${prefix}%`, `${prefix}${before}`);
+}
+
 // ---------- meals ----------
 
 interface MealRow {

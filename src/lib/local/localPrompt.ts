@@ -35,11 +35,12 @@ export const LOCAL_SCHEMA = {
   required: ['dish_summary', 'items'],
 };
 
-export function localUserText(opts: { hasPhoto: boolean; description?: string; note?: string }): string {
+export function localUserText(opts: { hasPhoto: boolean; description?: string; note?: string; menu?: string }): string {
   const what = opts.hasPhoto
     ? 'List the foods in this photo with portions.'
     : `List the foods in this meal description with portions: "${opts.description ?? ''}"`;
-  return `${what}${opts.note ? `\nUser note: "${opts.note}"` : ''}\nReply as JSON with dish_summary (under 6 words) and items.`;
+  const menu = opts.menu ? `\nToday's mess menu (the food is from this, use these names): ${opts.menu}` : '';
+  return `${what}${opts.note ? `\nUser note: "${opts.note}"` : ''}${menu}\nReply as JSON with dish_summary (under 6 words) and items.`;
 }
 
 export function parseLocalReply(text: string): { dishSummary: string; items: ParsedItem[] } {

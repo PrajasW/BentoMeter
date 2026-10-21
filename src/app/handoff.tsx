@@ -61,6 +61,7 @@ export default function Handoff() {
       eatenAt,
       excludeMealId: draft.id,
       note: draft.note || undefined,
+      mess: draft.mess,
     });
     return buildHandoffPrompt(context, { hasPhoto, description });
   };

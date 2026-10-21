@@ -1,3 +1,4 @@
+import { messContextLines, type MessContext } from './mess';
 import { SLOT_META, SLOTS } from './mealSlot';
 import { round, toPerUnit } from './nutrition';
 import { newId } from './dates';
@@ -14,6 +15,8 @@ export interface DayContext {
   earlierMeals: { slot: Slot; time: string; summary: string; kcal: number }[];
   consumedSoFar: Macros;
   note?: string;
+  /** IIIT-H mess menu for this meal, when the user is eating at the mess. */
+  mess?: MessContext | null;
 }
 
 export interface AnalyzedMeal {
@@ -97,6 +100,7 @@ Food analysis rules:
 - Include likely hidden calories (cooking oil, ghee, butter, dressings, sugar in drinks) inside the item they belong to.
 - Use realistic home/restaurant values for the cuisine you see. Be accurate rather than optimistic.
 - If the user's note corrects or adds information, trust the note.
+- If a mess menu is given, the plate comes from that menu: use the menu's dish names, use it to tell look-alike curries, dals and sabzis apart, assume Indian hostel-mess portions and oil, and never add menu items that are not visible.
 - If the image contains no food, return an empty items array and say so in dish_summary.
 
 Recommendation rules:
@@ -122,7 +126,7 @@ export function describeContext(ctx: DayContext): string {
 - User: ${p.age} y, ${p.sex}, ${p.heightCm} cm, ${p.weightKg} kg, activity ${p.activity}, goal ${p.goal}
 - Daily targets: ${t.kcal} kcal, protein ${t.proteinG} g, carbs ${t.carbsG} g, fat ${t.fatG} g
 - Eaten earlier that day (before this meal): ${Math.round(c.kcal)} kcal, P ${Math.round(c.proteinG)} g, C ${Math.round(c.carbsG)} g, F ${Math.round(c.fatG)} g
-${earlier}${ctx.note ? `\n- User note about this meal: "${ctx.note}"` : ''}`;
+${earlier}${ctx.note ? `\n- User note about this meal: "${ctx.note}"` : ''}${ctx.mess ? `\n${messContextLines(ctx.mess)}` : ''}`;
 }
 
 // ---------- parsing ----------
