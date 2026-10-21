@@ -216,18 +216,6 @@ export default function Capture() {
         }}
       />
 
-      {messMeal ? (
-        <MessCard
-          meal={messMeal}
-          state={messState}
-          on={messOn}
-          onToggle={(on) => setMessPick({ ...messChoice, on })}
-          messId={messId}
-          pickedByUser={messChoice.id !== undefined}
-          onPick={(id) => setMessPick({ ...messChoice, id })}
-        />
-      ) : null}
-
       <Segmented<Mode>
         value={mode}
         onChange={setMode}
@@ -273,6 +261,18 @@ export default function Capture() {
         onChangeText={setNote}
         placeholder="Note for the AI, e.g. ate half the rice"
       />
+
+      {messMeal ? (
+        <MessCard
+          meal={messMeal}
+          state={messState}
+          on={messOn}
+          onToggle={(on) => setMessPick({ ...messChoice, on })}
+          messId={messId}
+          pickedByUser={messChoice.id !== undefined}
+          onPick={(id) => setMessPick({ ...messChoice, id })}
+        />
+      ) : null}
 
       {error ? (
         <Card tint={c.sakuraSoft} style={{ gap: 10, alignItems: 'center', borderColor: c.sakuraSoft }}>

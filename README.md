@@ -156,7 +156,7 @@ At an IIIT Hyderabad mess, BentoMeter can fetch that meal's menu from [dining.ii
 1. **Turn it on in Settings → IIIT-H mess 🏫.** It's off by default, so nobody else ever sees it.
 2. **When you log breakfast, lunch, snacks or dinner,** a 🍛 **At the mess** card appears. Toggle it off for outside food.
 3. **Pick the mess from the dropdown:** Kadamba, Yuktāhār, Bakul or Palāsh. Kadamba and Bakul use their non-veg menu, which is the veg menu plus the non-veg dishes. Tap **See lunch menu** to check what's cooking.
-4. **(Optional) add your dining-portal key** in the same Settings card. The dropdown then starts on the mess you're registered at, shows when you checked in, and adds any extras you bought, like Kadamba's 2-egg omelette.
+4. **(Optional) add your dining-portal key** in the same Settings card. The dropdown then starts on the mess you're registered at, shows when you checked in, and adds any extras you bought. Kadamba dinner also knows about its 2-egg omelette extra.
 
 The menu reaches every engine: the Gemini API, the chat-app prompt and the on-device model (a shorter version for that one). If the menu can't load, analysis carries on without it, and a saved copy is used offline.
 

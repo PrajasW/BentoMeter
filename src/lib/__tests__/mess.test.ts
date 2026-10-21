@@ -31,6 +31,7 @@ const menusResponse = {
             { item: 'Chicken curry', category: 'Non-Veg' },
           ],
           snacks: [{ item: 'Samosa', category: 'Snack' }],
+          dinner: [{ item: 'Jeera rice', category: 'Flavoured Rice' }],
         },
         thursday: { lunch: [{ item: 'Not today', category: 'Dal' }] },
       },
@@ -141,12 +142,19 @@ describe('prompt text', () => {
     expect(text.endsWith('…')).toBe(true);
   });
 
-  it('adds the menu, extras and bought extras to the shared context', () => {
+  it('adds the menu and bought extras to the shared context', () => {
     const text = describeContext({ ...ctx, mess });
     expect(text).toMatch(/Kadamba mess/);
     expect(text).toMatch(/Dal: Dal makhni/);
-    expect(text).toMatch(/Paid extras sold at this mess: 2-egg omelette/);
     expect(text).toMatch(/bought these extras for this meal: 2 egg omelette/);
+  });
+
+  it('only mentions the omelette extra for Kadamba dinner', () => {
+    expect(describeContext({ ...ctx, mess })).not.toMatch(/Paid extras/);
+    const dinner = buildMessContext({ messId: 'kadamba', meal: 'dinner', menus })!;
+    expect(dinner.extras).toEqual(['2-egg omelette']);
+    expect(describeContext({ ...ctx, slot: 'dinner', mess: dinner })).toMatch(/Paid extras sold at this mess: 2-egg omelette/);
+    expect(buildMessContext({ messId: 'bakul', meal: 'dinner', menus })!.extras).toEqual([]);
   });
 
   it('leaves the context unchanged without a mess', () => {

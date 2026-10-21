@@ -127,9 +127,9 @@ export function MessCard({
                   </Txt>
                 </Row>
               ))}
-              {info.extras.length ? (
+              {info.extras[meal]?.length ? (
                 <Txt variant="caption" style={{ marginTop: 4 }}>
-                  ✨ Extras here: {info.extras.join(', ')}
+                  ✨ Extras here: {info.extras[meal]!.join(', ')}
                 </Txt>
               ) : null}
             </View>

@@ -13,16 +13,16 @@ export interface MessInfo {
   label: string;
   /** Menu id on the dining API. Kadamba and Bakul use the non-veg menu (veg menu + non-veg items). */
   menuId: string;
-  /** Paid extras usually sold at the counter, used as a hint for the AI. */
-  extras: string[];
+  /** Paid extras sold at the counter for a given meal, used as a hint for the AI. */
+  extras: Partial<Record<MessMeal, string[]>>;
 }
 
 /** In the order the user wants them in the dropdown. */
 export const MESSES: MessInfo[] = [
-  { id: 'kadamba', label: 'Kadamba', menuId: 'kadamba-nonveg', extras: ['2-egg omelette'] },
-  { id: 'yuktahar', label: 'Yuktāhār', menuId: 'yuktahar', extras: [] },
-  { id: 'bakul', label: 'Bakul', menuId: 'bakul-nonveg', extras: [] },
-  { id: 'palash', label: 'Palāsh', menuId: 'palash', extras: [] },
+  { id: 'kadamba', label: 'Kadamba', menuId: 'kadamba-nonveg', extras: { dinner: ['2-egg omelette'] } },
+  { id: 'yuktahar', label: 'Yuktāhār', menuId: 'yuktahar', extras: {} },
+  { id: 'bakul', label: 'Bakul', menuId: 'bakul-nonveg', extras: {} },
+  { id: 'palash', label: 'Palāsh', menuId: 'palash', extras: {} },
 ];
 
 export const DEFAULT_MESS: MessId = 'kadamba';
@@ -131,7 +131,13 @@ export function buildMessContext(args: {
   const items = args.menus[args.messId]?.[args.meal];
   if (!items?.length) return null;
   const info = messInfo(args.messId);
-  return { messLabel: info.label, meal: args.meal, items, extras: info.extras, boughtExtras: args.boughtExtras ?? [] };
+  return {
+    messLabel: info.label,
+    meal: args.meal,
+    items,
+    extras: info.extras[args.meal] ?? [],
+    boughtExtras: args.boughtExtras ?? [],
+  };
 }
 
 const COMPACT_LIMIT = 450;
