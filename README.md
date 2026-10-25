@@ -44,6 +44,7 @@ And when the free Gemini API says *"429: quota exceeded"*, you're still not stuc
 ## 🎀 UI workflow ｜ つかいかた
 
 > All screenshots are in ☀️ **Washi** (light) mode. There's also a cozy 🌙 **Yoru** (dark) mode!
+> The Today, meal, history and mess screenshots are from a real day of eating at IIIT-H's Kadamba mess 🍛
 
 ### ① First launch: say hi to your onigiri ｜ はじめまして
 
@@ -76,7 +77,7 @@ Gemini returns every item with portion, kcal, and macros. Tap **+ / −** to cha
 
 <table>
   <tr>
-    <td align="center"><img src="docs/screenshots/09-review.png" width="200" /><br/><sub><b>Review items</b> なかみ</sub></td>
+    <td align="center"><img src="docs/screenshots/09-review.png" width="200" /><br/><sub><b>Split &amp; editable items</b> なかみ</sub></td>
     <td align="center"><img src="docs/screenshots/10-next-up.png" width="200" /><br/><sub><b>Next up</b> つぎは</sub></td>
   </tr>
 </table>
@@ -88,8 +89,8 @@ The calorie ring shows how much is left today (のこり), with soft macro bars 
 <table>
   <tr>
     <td align="center"><img src="docs/screenshots/05-today-empty.png" width="200" /><br/><sub><b>Empty day</b> まだなにも…</sub></td>
-    <td align="center"><img src="docs/screenshots/11-today.png" width="200" /><br/><sub><b>After lunch</b> いただきました</sub></td>
-    <td align="center"><img src="docs/screenshots/12-meal-detail.png" width="200" /><br/><sub><b>Meal detail</b> ごはんのなかみ</sub></td>
+    <td align="center"><img src="docs/screenshots/11-today.png" width="200" /><br/><sub><b>A real mess day</b> いただきました</sub></td>
+    <td align="center"><img src="docs/screenshots/12-meal-detail.png" width="200" /><br/><sub><b>Biryani, split up</b> ごはんのなかみ</sub></td>
   </tr>
 </table>
 
@@ -159,6 +160,15 @@ At an IIIT Hyderabad mess, BentoMeter can fetch that meal's menu from [dining.ii
 4. **(Optional) add your dining-portal key** in the same Settings card. The dropdown then starts on the mess you're registered at, shows when you checked in, and adds any extras you bought. Kadamba dinner also knows about its 2-egg omelette extra.
 
 The menu reaches every engine: the Gemini API, the chat-app prompt and the on-device model (a shorter version for that one).
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/26-mess-card.png" width="200" /><br/><sub><b>At the mess</b> しょくどう</sub></td>
+    <td align="center"><img src="docs/screenshots/27-mess-menu.png" width="200" /><br/><sub><b>Tonight's menu</b> こんばんのメニュー</sub></td>
+    <td align="center"><img src="docs/screenshots/28-mess-picker.png" width="200" /><br/><sub><b>Which mess?</b> どこ？</sub></td>
+    <td align="center"><img src="docs/screenshots/29-settings-mess.png" width="200" /><br/><sub><b>Settings</b> せってい</sub></td>
+  </tr>
+</table>
 
 **🔌 Off campus?** The dining portal only works on the campus network or the **IIIT VPN**. One download saves the **whole week's menu**, so turning the VPN on once a week is enough. The card shows when the menu was saved. If a day is missing or the menu looks different, turn the VPN on and tap **↻** on the card (or **Refresh this week's menu** in Settings) to fetch the menu, your registration and extras again. If the menu can't load, analysis carries on without it.
 
