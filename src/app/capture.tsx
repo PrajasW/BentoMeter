@@ -5,6 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { KawaiiLoader, LOCAL_LINES } from '@/components/KawaiiLoader';
+import { MessCard } from '@/components/MessCard';
 import { Mascot } from '@/components/Mascot';
 import { WhenPicker } from '@/components/WhenPicker';
 import { Button, Card, Input, Screen, Segmented, Txt } from '@/components/ui';
@@ -14,9 +15,11 @@ import { analyzeMeal } from '@/lib/gemini';
 import { analyzeMealLocally, isLocalRuntimeAvailable } from '@/lib/local/llm';
 import { AnalysisError, type AnalyzedMeal } from '@/lib/prompt';
 import { preparePhoto } from '@/lib/image';
+import { buildMessContext, DEFAULT_MESS, formatMessMenu, mealForSlot, type MessId } from '@/lib/mess';
 import { defaultTimeForSlot, slotForTime, SLOTS } from '@/lib/mealSlot';
 import { itemsTotals } from '@/lib/nutrition';
 import type { Slot } from '@/lib/types';
+import { useMessMenu } from '@/lib/useMessMenu';
 import { useAppStore, type Draft } from '@/store/useAppStore';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
@@ -31,7 +34,7 @@ export default function Capture() {
   const isToday = date === todayKey();
   const initialSlot: Slot = SLOTS.includes(params.slot as Slot) ? (params.slot as Slot) : slotForTime(new Date());
 
-  const { profile, apiKey, modelId, useFallback, setDraft, engine, localModel } = useAppStore();
+  const { profile, apiKey, modelId, useFallback, setDraft, engine, localModel, messEnabled, diningKey } = useAppStore();
   const localReady = localModel.state === 'ready' && isLocalRuntimeAvailable();
   const [slot, setSlot] = useState<Slot>(initialSlot);
   const [when, setWhen] = useState<Date>(() => {
@@ -47,6 +50,23 @@ export default function Capture() {
   const [busy, setBusy] = useState<Engine | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [failed, setFailed] = useState<Engine | null>(null);
+
+  // IIIT-H mess: on/off and which mess follow the registration until the user changes them.
+  const messMeal = messEnabled ? mealForSlot(slot) : null;
+  const mealDate = dayKey(when);
+  const messState = useMessMenu(mealDate, messMeal, diningKey);
+  // Manual choices only count for the meal/day they were made on.
+  const pickKey = `${messMeal}|${mealDate}`;
+  const [messPick, setMessPick] = useState<{ key: string; on?: boolean; id?: MessId }>({ key: pickKey });
+  const messChoice = messPick.key === pickKey ? messPick : { key: pickKey };
+  const reg = messState.registration;
+  const messOnAuto = !(messState.registrationKnown && messMeal !== 'snacks' && (!reg || reg.cancelled));
+  const messOn = !!messMeal && (messChoice.on ?? messOnAuto);
+  const messId: MessId = messChoice.id ?? (reg && !reg.cancelled && reg.mess ? reg.mess : DEFAULT_MESS);
+  const messContext =
+    messOn && messMeal && messState.menus
+      ? buildMessContext({ messId, meal: messMeal, menus: messState.menus, boughtExtras: messState.boughtExtras })
+      : null;
 
   const changeSlot = (s: Slot) => {
     setSlot(s);
@@ -85,6 +105,7 @@ export default function Capture() {
     recommendation: null,
     modelUsed: null,
     recommendationBasisKcal: 0,
+    mess: messContext,
   });
 
   const run = async (which: Engine) => {
@@ -102,7 +123,12 @@ export default function Capture() {
       const text = mode === 'text' ? description.trim() : undefined;
       let result: AnalyzedMeal;
       if (which === 'local') {
-        result = await analyzeMealLocally({ imageUri: savedUri ?? undefined, description: text, note: note.trim() || undefined });
+        result = await analyzeMealLocally({
+          imageUri: savedUri ?? undefined,
+          description: text,
+          note: note.trim() || undefined,
+          menu: messContext ? formatMessMenu(messContext, 'compact') : undefined,
+        });
       } else {
         const context = await buildDayContext({
           profile,
@@ -110,6 +136,7 @@ export default function Capture() {
           slot,
           eatenAt: when,
           note: note.trim() || undefined,
+          mess: messContext,
         });
         result = await analyzeMeal({ apiKey: apiKey!, model: modelId, useFallback, imageBase64, description: text, context });
       }
@@ -234,6 +261,18 @@ export default function Capture() {
         onChangeText={setNote}
         placeholder="Note for the AI, e.g. ate half the rice"
       />
+
+      {messMeal ? (
+        <MessCard
+          meal={messMeal}
+          state={messState}
+          on={messOn}
+          onToggle={(on) => setMessPick({ ...messChoice, on })}
+          messId={messId}
+          pickedByUser={messChoice.id !== undefined}
+          onPick={(id) => setMessPick({ ...messChoice, id })}
+        />
+      ) : null}
 
       {error ? (
         <Card tint={c.sakuraSoft} style={{ gap: 10, alignItems: 'center', borderColor: c.sakuraSoft }}>

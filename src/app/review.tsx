@@ -119,6 +119,7 @@ export default function Review() {
         slot: draft.slot,
         eatenAt: when,
         excludeMealId: draft.id,
+        mess: draft.mess,
       });
       const rec = await refreshRecommendation({
         apiKey,

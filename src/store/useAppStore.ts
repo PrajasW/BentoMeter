@@ -4,7 +4,8 @@ import { todayKey } from '@/lib/dates';
 import { DEFAULT_MODEL } from '@/lib/gemini';
 import { releaseLocalModel } from '@/lib/local/llm';
 import { cancelDownload, deleteModel, downloadModel, isModelReady, type ModelStatus } from '@/lib/local/modelManager';
-import { getApiKey, setApiKey } from '@/lib/secrets';
+import type { MessContext } from '@/lib/mess';
+import { getApiKey, getDiningKey, setApiKey, setDiningKey } from '@/lib/secrets';
 import type { FoodItem, Profile, Recommendation, Slot, ThemePref } from '@/lib/types';
 
 /** Which analyzer runs first; the other options are offered when it fails. */
@@ -26,6 +27,8 @@ export interface Draft {
   modelUsed: string | null;
   /** Meal kcal when the recommendation was produced, to detect stale advice. */
   recommendationBasisKcal: number;
+  /** IIIT-H mess menu chosen on the capture screen, reused by handoff and refresh. */
+  mess?: MessContext | null;
 }
 
 interface AppState {
@@ -37,6 +40,9 @@ interface AppState {
   apiKey: string | null;
   engine: Engine;
   localModel: ModelStatus;
+  /** Show the IIIT-H mess option when logging meals. */
+  messEnabled: boolean;
+  diningKey: string | null;
   /** Day shown on the Today tab. */
   selectedDate: string;
   /** Bumped after every meal write so screens reload. */
@@ -50,6 +56,8 @@ interface AppState {
   setUseFallback: (v: boolean) => Promise<void>;
   setApiKey: (k: string) => Promise<void>;
   setEngine: (e: Engine) => Promise<void>;
+  setMessEnabled: (v: boolean) => Promise<void>;
+  setDiningKey: (k: string) => Promise<void>;
   downloadLocalModel: () => Promise<void>;
   cancelLocalDownload: () => void;
   deleteLocalModel: () => Promise<void>;
@@ -68,18 +76,22 @@ export const useAppStore = create<AppState>((set, get) => ({
   apiKey: null,
   engine: 'gemini',
   localModel: { state: 'none' },
+  messEnabled: false,
+  diningKey: null,
   selectedDate: todayKey(),
   dataVersion: 0,
   draft: null,
 
   hydrate: async () => {
-    const [profile, themePref, modelId, useFallback, apiKey, engine] = await Promise.all([
+    const [profile, themePref, modelId, useFallback, apiKey, engine, messEnabled, diningKey] = await Promise.all([
       db.getProfile(),
       db.getSetting('theme'),
       db.getSetting('model'),
       db.getSetting('fallback'),
       getApiKey().catch(() => null),
       db.getSetting('engine'),
+      db.getSetting('mess'),
+      getDiningKey().catch(() => null),
     ]);
     const modelReady = isModelReady();
     set({
@@ -91,6 +103,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       apiKey,
       engine: engine === 'local' && modelReady ? 'local' : 'gemini',
       localModel: modelReady ? { state: 'ready' } : { state: 'none' },
+      messEnabled: messEnabled === 'true',
+      diningKey,
     });
   },
   setProfile: async (p) => {
@@ -116,6 +130,14 @@ export const useAppStore = create<AppState>((set, get) => ({
   setEngine: async (e) => {
     set({ engine: e });
     await db.setSetting('engine', e);
+  },
+  setMessEnabled: async (v) => {
+    set({ messEnabled: v });
+    await db.setSetting('mess', String(v));
+  },
+  setDiningKey: async (k) => {
+    await setDiningKey(k);
+    set({ diningKey: k.trim() || null });
   },
   downloadLocalModel: async () => {
     if (get().localModel.state === 'downloading') return;

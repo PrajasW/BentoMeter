@@ -12,7 +12,7 @@
   {"id": "B011", "n": "Paneer curry (paneer masala)", "a": ["paneer", "paneer curry", "paneer masala", "paneer sabzi", "paneer gravy"], "k": 200, "p": 9, "c": 7, "f": 15, "s": [["bowl", 180], ["katori", 150]]},
   {"id": "B012", "n": "Paneer butter masala", "a": ["paneer butter masala", "butter paneer", "paneer makhani"], "k": 230, "p": 8, "c": 9, "f": 18, "s": [["bowl", 180], ["katori", 150]]},
   {"id": "B013", "n": "Palak paneer", "a": ["palak paneer", "saag paneer"], "k": 150, "p": 7.5, "c": 6, "f": 11, "s": [["bowl", 180], ["katori", 150]]},
-  {"id": "B014", "n": "Paneer (raw)", "a": ["raw paneer", "paneer cubes", "cottage cheese"], "k": 296, "p": 18, "c": 3.5, "f": 23, "s": [["cube", 15], ["piece", 15]]},
+  {"id": "B014", "n": "Paneer (raw)", "a": ["raw paneer", "cottage cheese"], "k": 296, "p": 18, "c": 3.5, "f": 23, "s": [["cube", 15], ["piece", 15]]},
   {"id": "B015", "n": "Mixed vegetable sabzi", "a": ["sabzi", "sabji", "subzi", "mix veg", "mixed vegetable", "vegetable curry"], "k": 95, "p": 2.5, "c": 9, "f": 5.5, "s": [["bowl", 150], ["katori", 120]]},
   {"id": "B016", "n": "Aloo sabzi", "a": ["aloo sabzi", "aloo sabji", "potato sabzi", "aloo curry", "potato curry"], "k": 120, "p": 2, "c": 16, "f": 5.5, "s": [["bowl", 150], ["katori", 120]]},
   {"id": "B017", "n": "Bhindi sabzi", "a": ["bhindi", "bhindi sabzi", "okra", "bhindi fry"], "k": 110, "p": 2.3, "c": 9, "f": 7, "s": [["bowl", 120], ["katori", 100]]},
@@ -78,5 +78,9 @@
   {"id": "B077", "n": "Pizza slice", "a": ["pizza", "pizza slice", "cheese pizza"], "k": 265, "p": 11, "c": 33, "f": 10, "s": [["slice", 100], ["piece", 100]]},
   {"id": "B078", "n": "Dal makhani", "a": ["dal makhani", "daal makhani", "maa ki dal"], "k": 140, "p": 5.5, "c": 13, "f": 7.5, "s": [["bowl", 180], ["katori", 150]]},
   {"id": "B079", "n": "Thepla", "a": ["thepla", "methi thepla"], "k": 300, "p": 7, "c": 40, "f": 12.5, "s": [["piece", 40]]},
-  {"id": "B080", "n": "Chicken tikka", "a": ["chicken tikka", "tandoori chicken"], "k": 150, "p": 25, "c": 3, "f": 4.5, "s": [["piece", 30], ["plate", 200]]}
+  {"id": "B080", "n": "Chicken tikka", "a": ["chicken tikka", "tandoori chicken"], "k": 150, "p": 25, "c": 3, "f": 4.5, "s": [["piece", 30], ["plate", 200]]},
+  {"id": "B081", "n": "Curry gravy (onion-tomato)", "a": ["curry gravy", "gravy", "masala gravy", "butter masala gravy", "paneer butter masala gravy", "kadai gravy", "chicken curry gravy", "egg curry gravy", "salan gravy"], "k": 120, "p": 2, "c": 8, "f": 9, "s": [["katori", 120], ["bowl", 180], ["ladle", 60]]},
+  {"id": "B082", "n": "Biryani rice", "a": ["biryani rice", "biriyani rice", "dum biryani rice", "chicken biryani rice", "biryani rice only"], "k": 160, "p": 3.5, "c": 26, "f": 4.5, "s": [["plate", 250], ["bowl", 200], ["cup", 160]]},
+  {"id": "B083", "n": "Chicken pieces (curry/biryani, bone-in)", "a": ["chicken pieces", "chicken piece", "chicken pieces bone-in", "chicken leg piece", "biryani chicken"], "k": 190, "p": 20, "c": 1, "f": 12, "s": [["piece", 45], ["leg piece", 90]]},
+  {"id": "B084", "n": "Paneer cubes (cooked in gravy)", "a": ["paneer cubes", "paneer cube", "paneer pieces", "paneer piece"], "k": 300, "p": 18, "c": 4, "f": 24, "s": [["cube", 15], ["piece", 15]]}
 ]

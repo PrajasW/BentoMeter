@@ -89,3 +89,24 @@ describe('parseLocalReply', () => {
     expect(() => parseLocalReply('sorry')).toThrow();
   });
 });
+
+describe('split mixed dishes', () => {
+  it.each([
+    ['biryani rice', 'Biryani rice'],
+    ['chicken pieces', 'Chicken pieces (curry/biryani, bone-in)'],
+    ['paneer cubes', 'Paneer cubes (cooked in gravy)'],
+    ['curry gravy', 'Curry gravy (onion-tomato)'],
+    ['paneer butter masala gravy', 'Curry gravy (onion-tomato)'],
+  ])('%s → %s', (q, name) => {
+    expect(findFood(q)[0].food.n).toBe(name);
+  });
+
+  it('asks every engine to split biryani and curries', () => {
+    const { SYSTEM_PROMPT } = jest.requireActual('../prompt');
+    const { LOCAL_SYSTEM_PROMPT } = jest.requireActual('../local/localPrompt');
+    expect(SYSTEM_PROMPT).toMatch(/Biryani rice" \+ "Chicken pieces/);
+    expect(SYSTEM_PROMPT).toMatch(/Paneer cubes/);
+    expect(LOCAL_SYSTEM_PROMPT).toMatch(/biryani rice" \+ "chicken pieces/);
+    expect(LOCAL_SYSTEM_PROMPT).toMatch(/curry gravy/);
+  });
+});

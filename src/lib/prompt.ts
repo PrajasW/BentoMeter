@@ -1,3 +1,4 @@
+import { messContextLines, type MessContext } from './mess';
 import { SLOT_META, SLOTS } from './mealSlot';
 import { round, toPerUnit } from './nutrition';
 import { newId } from './dates';
@@ -14,6 +15,8 @@ export interface DayContext {
   earlierMeals: { slot: Slot; time: string; summary: string; kcal: number }[];
   consumedSoFar: Macros;
   note?: string;
+  /** IIIT-H mess menu for this meal, when the user is eating at the mess. */
+  mess?: MessContext | null;
 }
 
 export interface AnalyzedMeal {
@@ -92,11 +95,16 @@ export const SYSTEM_PROMPT = `You are BentoMeter, a careful nutrition estimator 
 
 Food analysis rules:
 - List every distinct food or drink item separately (e.g. rice, curry, side salad, drink). Do not merge separate items.
+- Split mixed dishes into their parts so each can be edited on its own:
+  - Chicken / mutton / egg biryani → "Biryani rice" + "Chicken pieces" (or mutton pieces / boiled eggs). Count the pieces.
+  - Curries with pieces in a gravy (paneer butter masala, kadai paneer, chicken curry, egg curry, …) → the pieces ("Paneer cubes", "Chicken pieces (bone-in)", "Boiled eggs"; count them) + the gravy (e.g. "Paneer butter masala gravy"). Put the cooking oil/ghee in the gravy item.
+  - Keep plain dal, sabzi, rice and roti as single items.
 - Estimate portions from visual cues: standard plates are ~26 cm, bowls ~250–400 ml, use utensils and hands for scale.
 - Choose a natural quantity + unit per item (2 piece roti, 1 bowl dal, 150 g rice, 1 cup chai). kcal and macros are for the WHOLE quantity.
 - Include likely hidden calories (cooking oil, ghee, butter, dressings, sugar in drinks) inside the item they belong to.
 - Use realistic home/restaurant values for the cuisine you see. Be accurate rather than optimistic.
 - If the user's note corrects or adds information, trust the note.
+- If a mess menu is given, the plate comes from that menu: use the menu's dish names, use it to tell look-alike curries, dals and sabzis apart, assume Indian hostel-mess portions and oil, and never add menu items that are not visible.
 - If the image contains no food, return an empty items array and say so in dish_summary.
 
 Recommendation rules:
@@ -122,7 +130,7 @@ export function describeContext(ctx: DayContext): string {
 - User: ${p.age} y, ${p.sex}, ${p.heightCm} cm, ${p.weightKg} kg, activity ${p.activity}, goal ${p.goal}
 - Daily targets: ${t.kcal} kcal, protein ${t.proteinG} g, carbs ${t.carbsG} g, fat ${t.fatG} g
 - Eaten earlier that day (before this meal): ${Math.round(c.kcal)} kcal, P ${Math.round(c.proteinG)} g, C ${Math.round(c.carbsG)} g, F ${Math.round(c.fatG)} g
-${earlier}${ctx.note ? `\n- User note about this meal: "${ctx.note}"` : ''}`;
+${earlier}${ctx.note ? `\n- User note about this meal: "${ctx.note}"` : ''}${ctx.mess ? `\n${messContextLines(ctx.mess)}` : ''}`;
 }
 
 // ---------- parsing ----------
