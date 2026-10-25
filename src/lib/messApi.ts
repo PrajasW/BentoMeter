@@ -1,6 +1,13 @@
 import { deleteSettingsBefore, getSetting, setSetting } from './db';
 import { addDays, todayKey } from './dates';
-import { extractDayMenus, parseRegistration, type DayMenus, type MessMeal, type Registration } from './mess';
+import {
+  extractDayMenus,
+  extractWeekMenus,
+  parseRegistration,
+  type DayMenus,
+  type MessMeal,
+  type Registration,
+} from './mess';
 
 /**
  * dining.iiit.ac.in API. Menus are public; registrations and bought extras need the
@@ -56,34 +63,44 @@ export interface MenuResult {
   menus: DayMenus;
   /** True when the network failed and an older saved copy is being used. */
   fromCache: boolean;
+  /** When this menu was downloaded (ms since epoch). */
+  savedAt: number;
 }
 
-/** That day's menus for our four messes, cached per day. Returns null if nothing could be loaded. */
-export async function fetchMenusForDate(date: string): Promise<MenuResult | null> {
+/**
+ * That day's menus for our four messes. One request returns the whole week, so every
+ * day of that week is saved at once; `force` skips the saved copy (the ↻ Refresh button).
+ * Returns null if nothing could be loaded.
+ */
+export async function fetchMenusForDate(date: string, opts: { force?: boolean } = {}): Promise<MenuResult | null> {
   const cacheKey = `mess:menu:${date}`;
   const cached = await readCache<DayMenus>(cacheKey);
   const isPast = date < todayKey();
-  if (cached && (isPast || Date.now() - cached.fetchedAt < MENU_FRESH_MS)) {
-    return { menus: cached.value, fromCache: false };
+  if (!opts.force && cached && (isPast || Date.now() - cached.fetchedAt < MENU_FRESH_MS)) {
+    return { menus: cached.value, fromCache: false, savedAt: cached.fetchedAt };
   }
   try {
-    const menus = extractDayMenus(await getJson(`/mess/menus?on=${date}`), date);
-    await writeCache(cacheKey, menus);
+    const week = extractWeekMenus(await getJson(`/mess/menus?on=${date}`), date);
+    for (const [day, menus] of Object.entries(week)) await writeCache(`mess:menu:${day}`, menus);
     deleteSettingsBefore('mess:menu:', addDays(todayKey(), -KEEP_DAYS)).catch(() => {});
-    return { menus, fromCache: false };
+    return { menus: week[date] ?? extractDayMenus(null, date), fromCache: false, savedAt: Date.now() };
   } catch {
-    return cached ? { menus: cached.value, fromCache: true } : null;
+    return cached ? { menus: cached.value, fromCache: true, savedAt: cached.fetchedAt } : null;
   }
 }
 
 export type DayRegistration = Partial<Record<MessMeal, Registration>>;
 
 /** Which mess the user is registered at for each meal of that day. Null without a key or when offline. */
-export async function fetchRegistration(date: string, key: string | null): Promise<DayRegistration | null> {
+export async function fetchRegistration(
+  date: string,
+  key: string | null,
+  opts: { force?: boolean } = {},
+): Promise<DayRegistration | null> {
   if (!key) return null;
   const cacheKey = `mess:reg:${date}`;
   const cached = await readCache<DayRegistration>(cacheKey);
-  if (cached && Date.now() - cached.fetchedAt < REG_FRESH_MS) return cached.value;
+  if (!opts.force && cached && Date.now() - cached.fetchedAt < REG_FRESH_MS) return cached.value;
   try {
     const reg = parseRegistration(await getJson(`/registration?date=${date}`, key));
     await writeCache(cacheKey, reg);

@@ -72,7 +72,7 @@ The meal slot is picked from the clock (🍳 breakfast, 🍱 lunch, 🍡 snack, 
 
 ### ③ Review &amp; save: everything is editable ｜ かくにん
 
-Gemini returns every item with portion, kcal, and macros. Tap **+ / −** to change quantities and the numbers rescale instantly on-device. You can also rename items, change units, fix kcal, and add or remove items. Below that is your **Next up** suggestion, with 2–3 ideas and a tiny pep talk. ٩(◕‿◕｡)۶
+Gemini returns every item with portion, kcal, and macros. Tap **+ / −** to change quantities and the numbers rescale instantly on-device. Mixed dishes come split into parts, so you can fix each one: chicken biryani becomes **biryani rice + chicken pieces**, and a paneer or chicken curry becomes **the pieces (counted) + the gravy**. You can also rename items, change units, fix kcal, and add or remove items. Below that is your **Next up** suggestion, with 2–3 ideas and a tiny pep talk. ٩(◕‿◕｡)۶
 
 <table>
   <tr>
@@ -154,11 +154,13 @@ On a Pixel 9a this took **~43 s from a cold start**, with no network at all. Tur
 At an IIIT Hyderabad mess, BentoMeter can fetch that meal's menu from [dining.iiit.ac.in](https://dining.iiit.ac.in/menu) and send it along with your photo. Dishes then get their real mess names, so look-alike curries and dals stop getting mixed up. `(๑˃ᴗ˂)ﻭ`
 
 1. **Turn it on in Settings → IIIT-H mess 🏫.** It's off by default, so nobody else ever sees it.
-2. **When you log breakfast, lunch, snacks or dinner,** a 🍛 **At the mess** card appears. Toggle it off for outside food.
+2. **When you log breakfast, lunch or dinner,** a 🍛 **At the mess** card appears. Toggle it off for outside food. Snacks are logged without it.
 3. **Pick the mess from the dropdown:** Kadamba, Yuktāhār, Bakul or Palāsh. Kadamba and Bakul use their non-veg menu, which is the veg menu plus the non-veg dishes. Tap **See lunch menu** to check what's cooking.
 4. **(Optional) add your dining-portal key** in the same Settings card. The dropdown then starts on the mess you're registered at, shows when you checked in, and adds any extras you bought. Kadamba dinner also knows about its 2-egg omelette extra.
 
-The menu reaches every engine: the Gemini API, the chat-app prompt and the on-device model (a shorter version for that one). If the menu can't load, analysis carries on without it, and a saved copy is used offline.
+The menu reaches every engine: the Gemini API, the chat-app prompt and the on-device model (a shorter version for that one).
+
+**🔌 Off campus?** The dining portal only works on the campus network or the **IIIT VPN**. One download saves the **whole week's menu**, so turning the VPN on once a week is enough. The card shows when the menu was saved. If a day is missing or the menu looks different, turn the VPN on and tap **↻** on the card (or **Refresh this week's menu** in Settings) to fetch the menu, your registration and extras again. If the menu can't load, analysis carries on without it.
 
 | Same biryani photo | Without the menu | With Kadamba's lunch menu |
 |---|---|---|
@@ -190,7 +192,7 @@ The menu reaches every engine: the Gemini API, the chat-app prompt and the on-de
 | 🤖 | **Gemini model picker + fallback:** see [below](#-gemini-models--モデル) | モデル |
 | 💬 | **Ask a chat app:** Gemini API rate-limited? Copy a ready-made prompt, share the photo to the Gemini / ChatGPT app, paste the JSON reply back, and it lands in the normal review screen | チャット |
 | 📱 | **On-device AI (offline):** a local vision model ([Qwen3-VL 2B](https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct-GGUF)) names the foods, and calories come from a built-in Indian food table. See [below](#-on-device-ai--ローカル) | ローカル |
-| 🏫 | **IIIT-H mess mode:** the mess menu for that meal is sent as a hint, and with a dining key the picker defaults to the mess you're registered at. See [above](#-iiit-h-mess-mode-the-menu-as-a-hint--しょくどう-) | しょくどう |
+| 🏫 | **IIIT-H mess mode:** the mess menu for that meal (breakfast, lunch, dinner) is sent as a hint, saved a week at a time with a ↻ refresh, and with a dining key the picker defaults to the mess you're registered at. See [above](#-iiit-h-mess-mode-the-menu-as-a-hint--しょくどう-) | しょくどう |
 | 🌗 | **Themes:** ☀️ Washi, 🌙 Yoru, or Auto (follows the system) | テーマ |
 | 💾 | **Backup:** JSON export and import (photos not included) | バックアップ |
 | 🔒 | **Private by design:** SQLite on-device, API key in the secure store (`expo-secure-store`), never in the source | ひみつ |

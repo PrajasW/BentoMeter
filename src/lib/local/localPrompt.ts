@@ -7,6 +7,7 @@ import type { ParsedItem } from './foodDb';
 
 export const LOCAL_SYSTEM_PROMPT = `You identify foods for a calorie tracker. Most meals are Indian home food.
 List every distinct food or drink separately (e.g. roti, dal, rice, sabzi, curd, chai). Do not merge items.
+Split mixed dishes: chicken biryani → "biryani rice" + "chicken pieces"; paneer or chicken curry → "paneer cubes" or "chicken pieces" (count them) + "curry gravy".
 Use common simple names like "roti", "dal tadka", "paneer butter masala", "masala omelette", "steamed rice".
 For each item give quantity and unit. Prefer these units: piece, katori, bowl, plate, cup, glass, tbsp, tsp, slice, g, ml.
 Write "small" or "large" in the unit if the user says so (e.g. "small katori").

@@ -46,6 +46,44 @@ describe('fetchMenusForDate', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it('saves the whole week from one request', async () => {
+    const today = todayKey();
+    const weekBody = {
+      data: [
+        {
+          mess: 'kadamba-nonveg',
+          days: Object.fromEntries(
+            ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].map((d) => [
+              d,
+              { lunch: [{ item: `${d} dal`, category: 'Dal' }] },
+            ]),
+          ),
+        },
+      ],
+    };
+    fetchMock.mockResolvedValueOnce(ok(weekBody));
+    await fetchMenusForDate(today);
+    const saved = [...mockStore.keys()].filter((k) => k.startsWith('mess:menu:'));
+    expect(saved).toHaveLength(7);
+    // Another day of the same week is answered from the saved copy, no request.
+    const other = saved.find((k) => k !== `mess:menu:${today}`)!.slice('mess:menu:'.length);
+    const res = await fetchMenusForDate(other);
+    expect(res?.menus.kadamba?.lunch?.[0].item).toBe(`${weekday(other)} dal`);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('refresh skips the saved copy, and keeps it if the portal is unreachable', async () => {
+    const today = todayKey();
+    fetchMock.mockResolvedValueOnce(ok(menuBody(today)));
+    const first = await fetchMenusForDate(today);
+    fetchMock.mockRejectedValueOnce(new Error('VPN off'));
+    const refreshed = await fetchMenusForDate(today, { force: true });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(refreshed?.fromCache).toBe(true);
+    expect(refreshed?.savedAt).toBe(first?.savedAt);
+    expect(refreshed?.menus.kadamba?.lunch?.[0].item).toBe('Dal makhni');
+  });
+
   it('falls back to a stale saved copy when offline', async () => {
     const today = todayKey();
     mockStore.set(

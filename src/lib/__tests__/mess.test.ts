@@ -4,6 +4,7 @@ import { localUserText } from '../local/localPrompt';
 import {
   buildMessContext,
   extractDayMenus,
+  extractWeekMenus,
   formatMessMenu,
   mealForSlot,
   MESSES,
@@ -53,7 +54,7 @@ describe('mess basics', () => {
 
   it('maps app slots to mess meals', () => {
     expect(mealForSlot('breakfast')).toBe('breakfast');
-    expect(mealForSlot('snack')).toBe('snacks');
+    expect(mealForSlot('snack')).toBeNull();
     expect(mealForSlot('latenight')).toBeNull();
   });
 
@@ -89,6 +90,23 @@ describe('extractDayMenus', () => {
   it('survives junk', () => {
     expect(extractDayMenus(null, '2026-10-21')).toEqual({});
     expect(extractDayMenus({ data: 'nope' }, '2026-10-21')).toEqual({});
+  });
+});
+
+describe('extractWeekMenus', () => {
+  it('fills every day of the Sunday–Saturday week from one response', () => {
+    const week = extractWeekMenus(menusResponse, '2026-10-21');
+    expect(Object.keys(week)).toEqual([
+      '2026-10-18', '2026-10-19', '2026-10-20', '2026-10-21', '2026-10-22', '2026-10-23', '2026-10-24',
+    ]);
+    expect(week['2026-10-21'].kadamba?.lunch?.[1].item).toBe('Dal makhni');
+    expect(week['2026-10-22'].kadamba?.lunch?.[0].item).toBe('Not today');
+    expect(week['2026-10-18']).toEqual({});
+  });
+
+  it('handles weeks across a month boundary', () => {
+    expect(Object.keys(extractWeekMenus(menusResponse, '2026-11-01'))[0]).toBe('2026-11-01');
+    expect(Object.keys(extractWeekMenus(menusResponse, '2026-10-31'))).toContain('2026-10-25');
   });
 });
 

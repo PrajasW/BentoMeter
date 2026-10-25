@@ -48,12 +48,13 @@ export interface MessContext {
 const SLOT_TO_MEAL: Record<Slot, MessMeal | null> = {
   breakfast: 'breakfast',
   lunch: 'lunch',
-  snack: 'snacks',
+  // The mess snacks menu isn't used: snacks are logged without mess context.
+  snack: null,
   dinner: 'dinner',
   latenight: null,
 };
 
-/** Mess meal for an app slot; late-night snacks aren't served by the mess. */
+/** Mess meal for an app slot: breakfast, lunch and dinner only. */
 export const mealForSlot = (slot: Slot): MessMeal | null => SLOT_TO_MEAL[slot];
 
 /** Map any dining-API mess id (kadamba-veg, kadamba-nonveg-mild, yuktahar-jain…) to our four messes. */
@@ -91,6 +92,24 @@ export function extractDayMenus(response: unknown, dayKey: string): DayMenus {
       if (items.length) meals[meal] = items;
     }
     if (Object.keys(meals).length) out[mess.id] = meals;
+  }
+  return out;
+}
+
+/**
+ * The menus response covers a whole week, so one request can fill the cache for
+ * every day of the Sunday–Saturday week containing `dayKey`.
+ */
+export function extractWeekMenus(response: unknown, dayKey: string): Record<string, DayMenus> {
+  const [y, m, d] = dayKey.split('-').map(Number);
+  const sunday = new Date(y, m - 1, d);
+  sunday.setDate(sunday.getDate() - sunday.getDay());
+  const out: Record<string, DayMenus> = {};
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(sunday);
+    day.setDate(sunday.getDate() + i);
+    const key = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+    out[key] = extractDayMenus(response, key);
   }
   return out;
 }

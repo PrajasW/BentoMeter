@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Alert, Linking, Switch, View } from 'react-native';
-import { testDiningKey } from '@/lib/messApi';
+import { todayKey } from '@/lib/dates';
+import { fetchMenusForDate, testDiningKey } from '@/lib/messApi';
 import { useAppStore } from '@/store/useAppStore';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Button, Card, Input, Row, success, Txt } from './ui';
@@ -13,6 +14,19 @@ export function MessSettingsCard() {
   const [key, setKey] = useState('');
   const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const [testing, setTesting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [menuStatus, setMenuStatus] = useState<{ ok: boolean; message: string } | null>(null);
+
+  const refreshWeek = async () => {
+    setRefreshing(true);
+    const res = await fetchMenusForDate(todayKey(), { force: true });
+    setMenuStatus(
+      res && !res.fromCache
+        ? { ok: true, message: "This week's menu is saved ✨" }
+        : { ok: false, message: "Couldn't reach dining.iiit.ac.in. Turn on the IIIT VPN and try again." },
+    );
+    setRefreshing(false);
+  };
 
   const test = async (value: string) => {
     setTesting(true);
@@ -30,7 +44,7 @@ export function MessSettingsCard() {
         <View style={{ flex: 1 }}>
           <Txt variant="bodyBold">Use mess menus</Txt>
           <Txt variant="caption">
-            When you log breakfast, lunch, snacks or dinner, the mess menu is sent as a hint so dishes get their real names.
+            When you log breakfast, lunch or dinner, the mess menu is sent as a hint so dishes get their real names. Menus are saved a whole week at a time, so turning on the IIIT VPN once a week is enough.
           </Txt>
         </View>
         <Switch
@@ -43,6 +57,13 @@ export function MessSettingsCard() {
 
       {messEnabled ? (
         <>
+          <Button small kind="soft" title="↻ Refresh this week's menu" loading={refreshing} onPress={refreshWeek} />
+          {menuStatus ? (
+            <Txt variant="caption" color={menuStatus.ok ? c.matcha : c.danger}>
+              {menuStatus.ok ? '✓ ' : '✗ '}
+              {menuStatus.message}
+            </Txt>
+          ) : null}
           <Txt variant="caption">Dining portal key (optional)</Txt>
           {diningKey && !editing ? (
             <Row style={{ justifyContent: 'space-between' }}>

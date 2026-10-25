@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Switch, View } from 'react-native';
-import { formatTime } from '@/lib/dates';
+import { dayKey, formatDayLabel, formatTime } from '@/lib/dates';
 import { MESSES, messInfo, type MessId, type MessMeal } from '@/lib/mess';
 import type { MessMenuState } from '@/lib/useMessMenu';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -26,7 +26,7 @@ export function MessCard({
   onPick,
 }: {
   meal: MessMeal;
-  state: MessMenuState;
+  state: MessMenuState & { refresh: () => void; refreshing: boolean };
   on: boolean;
   onToggle: (v: boolean) => void;
   messId: MessId;
@@ -46,17 +46,25 @@ export function MessCard({
       return reg.availedAt ? `Registered · checked in ${formatTime(new Date(reg.availedAt))}` : 'Registered';
     }
     if (pickedByUser) return 'Picked by you';
-    if (state.registrationKnown && meal !== 'snacks') return `Not registered for ${MEAL_LABEL[meal]}`;
+    if (state.registrationKnown) return `Not registered for ${MEAL_LABEL[meal]}`;
     return 'Default';
   })();
 
   const status = (() => {
-    if (state.loading) return null;
-    if (!state.menus) return "Couldn't load the menu, so it'll analyze without it.";
+    if (state.loading || state.refreshing) return null;
+    if (state.refreshFailed) {
+      return state.menus
+        ? "Couldn't reach the dining portal. Turn on the IIIT VPN and tap Refresh. Using the saved menu for now."
+        : "Couldn't reach the dining portal. Turn on the IIIT VPN and tap Refresh.";
+    }
+    if (!state.menus) return 'No saved menu for this day. Turn on the IIIT VPN and tap Refresh.';
     if (!items.length) return `No ${MEAL_LABEL[meal]} menu at ${info.label}, so it'll analyze without it.`;
-    if (state.fromCache) return 'Offline, using the saved menu.';
     return null;
   })();
+
+  const saved = state.savedAt
+    ? `Menu saved ${formatDayLabel(dayKey(new Date(state.savedAt)))} ${formatTime(new Date(state.savedAt))}`
+    : null;
 
   return (
     <Card tint={on ? c.yuzuSoft : c.card} style={{ gap: 10, borderColor: on ? c.yuzuSoft : c.border, paddingVertical: 12 }}>
@@ -95,7 +103,32 @@ export function MessCard({
             <Txt variant="caption" style={{ flex: 1 }} numberOfLines={2}>
               {source}
             </Txt>
+            <Pressable
+              onPress={() => {
+                tap();
+                state.refresh();
+              }}
+              disabled={state.refreshing || state.loading}
+              hitSlop={6}
+              accessibilityLabel="Refresh menu and registration"
+              style={({ pressed }) => [
+                styles.refresh,
+                { backgroundColor: c.card, borderColor: c.border, opacity: pressed ? 0.7 : 1 },
+              ]}
+            >
+              {state.refreshing ? (
+                <ActivityIndicator size="small" color={c.sakura} />
+              ) : (
+                <Ionicons name="refresh" size={16} color={c.textSoft} />
+              )}
+            </Pressable>
           </Row>
+
+          {saved && !state.loading ? (
+            <Txt variant="caption" faint>
+              {saved}
+            </Txt>
+          ) : null}
 
           {state.loading ? (
             <Row>
@@ -209,6 +242,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   menu: { borderRadius: radius.sm, padding: 12, gap: 6 },
+  refresh: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(30, 20, 30, 0.35)' },
   sheet: {
     borderTopLeftRadius: radius.lg,
