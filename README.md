@@ -264,13 +264,20 @@ npx eas-cli@latest build --platform android
 
 ## 🤖 Gemini models ｜ モデル
 
-The default is **`gemini-pro-latest`**. If Pro has no quota (free-tier keys get 0 Pro requests) or is overloaded, BentoMeter falls back automatically:
+BentoMeter offers just two models, both free-tier **`-latest` aliases**, so they always point at Google's newest release:
+
+| Model | What it is |
+|---|---|
+| **`gemini-flash-latest`** (default) | Newest Flash: smart, still fast |
+| **`gemini-flash-lite-latest`** | Newest Flash-Lite: fastest and cheapest |
+
+If Flash is busy or out of quota, BentoMeter falls back to Flash-Lite automatically, so analysis always runs:
 
 ```
-gemini-pro-latest → gemini-3.1-pro-preview → gemini-3.8-flash → gemini-3.5-flash → gemini-flash-latest
+gemini-flash-latest → gemini-flash-lite-latest
 ```
 
-It remembers models that failed for a while, so later calls go straight to one that works. In **Settings** you can pick a model, type any model id, or turn the fallback off. `(ง •̀_•́)ง`
+It remembers models that failed for a while, so later calls go straight to one that works. In **Settings** you can pick either one, type any other model id (e.g. a Pro model if you have a paid key; free keys get no Pro quota), or turn the fallback off. `(ง •̀_•́)ง`
 
 ---
 

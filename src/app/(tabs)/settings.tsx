@@ -148,8 +148,8 @@ export default function Settings() {
         />
         <Row style={{ justifyContent: 'space-between' }}>
           <View style={{ flex: 1 }}>
-            <Txt variant="bodyBold">Fall back to Flash</Txt>
-            <Txt variant="caption">If Pro is out of quota or busy, use a Flash model instead of failing.</Txt>
+            <Txt variant="bodyBold">Fall back to Flash-Lite</Txt>
+            <Txt variant="caption">If Flash is busy or out of quota, use Flash-Lite (fast and cheapest) so it always runs.</Txt>
           </View>
           <Switch
             value={s.useFallback}

@@ -2,6 +2,9 @@ import { create } from 'zustand';
 import * as db from '@/lib/db';
 import { todayKey } from '@/lib/dates';
 import { DEFAULT_MODEL } from '@/lib/gemini';
+
+/** Model ids the app used to offer; saved ones move to the current default. Custom ids are kept. */
+const RETIRED_MODELS = new Set(['gemini-pro-latest', 'gemini-3.1-pro-preview', 'gemini-3.8-flash', 'gemini-3.5-flash']);
 import { releaseLocalModel } from '@/lib/local/llm';
 import { cancelDownload, deleteModel, downloadModel, isModelReady, type ModelStatus } from '@/lib/local/modelManager';
 import type { MessContext } from '@/lib/mess';
@@ -98,7 +101,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       hydrated: true,
       profile,
       themePref: (themePref as ThemePref) ?? 'system',
-      modelId: modelId ?? DEFAULT_MODEL,
+      modelId: !modelId || RETIRED_MODELS.has(modelId) ? DEFAULT_MODEL : modelId,
       useFallback: useFallback !== 'false',
       apiKey,
       engine: engine === 'local' && modelReady ? 'local' : 'gemini',

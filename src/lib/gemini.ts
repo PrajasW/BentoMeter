@@ -15,16 +15,15 @@ export type { AnalyzedMeal, DayContext } from './prompt';
 
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 
-export const DEFAULT_MODEL = 'gemini-pro-latest';
+// `-latest` aliases always point at Google's newest release, so this list doesn't go stale.
+export const DEFAULT_MODEL = 'gemini-flash-latest';
 
-/** Tried in order after the preferred model when it is out of quota or overloaded. */
-export const FALLBACK_MODELS = ['gemini-3.1-pro-preview', 'gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
+/** Tried in order after the preferred model when it is out of quota or overloaded. Flash-Lite is the cheapest. */
+export const FALLBACK_MODELS = ['gemini-flash-latest', 'gemini-flash-lite-latest'];
 
 export const MODEL_CHOICES = [
-  { id: 'gemini-pro-latest', label: 'Pro (latest)' },
-  { id: 'gemini-3.1-pro-preview', label: '3.1 Pro preview' },
-  { id: 'gemini-3.8-flash', label: '3.8 Flash' },
-  { id: 'gemini-3.5-flash', label: '3.5 Flash' },
+  { id: 'gemini-flash-latest', label: 'Flash (latest)' },
+  { id: 'gemini-flash-lite-latest', label: 'Flash-Lite (latest) · cheapest' },
 ];
 
 const REQUEST_TIMEOUT_MS = 90_000;
